@@ -1,0 +1,198 @@
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using YerraPro.Data;
+using YerraPro.Models;
+using YerraPro.Services;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
+namespace YerraPro.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AgentController : ControllerBase
+    {
+        public ApplicationDbContext _context;
+        private readonly IYerraProService _yerraProService;
+        private IWebHostEnvironment _hostEnvironment;
+        public AgentController(IYerraProService service, ApplicationDbContext context, IWebHostEnvironment environment)
+        {
+            _context = context;
+            _yerraProService = service;
+            _hostEnvironment = environment;
+        }
+
+        // GET: api/<AgentController>
+        [HttpGet]
+        public List<Agent> Get()
+        {
+            return _context.Agents.ToList();
+        }
+
+        // GET api/<AgentController>/5
+        [HttpGet("{id}")]
+        [Obsolete]
+        public Agent Get(string id)
+        {
+            
+            return _context.Agents
+                .Include(a => a.ProcesseInfos)
+                .FirstOrDefault(a => a.Id == id);
+        }
+        [HttpGet("allProcesses/{id}")]
+        public List<ProcessInfo> GetAllProcesses(string id)
+        {
+            var result = _context.ProcessesInfos.Where(p => p.AgentId == id).ToList();
+            return result;
+        }
+
+        // POST api/<AgentController>
+        [HttpPost]
+        [Obsolete]
+        public Agent Post()
+        {
+            Guid guid = Guid.NewGuid();
+
+            var newAgent = new Agent()
+            {
+                Id = guid.ToString()
+            };
+
+            _context.Agents.Add(newAgent);
+            _context.SaveChanges();
+
+            IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430";
+            string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
+            string path = "./Resources/liecense.lie";
+            if (!System.IO.File.Exists(path))
+            {
+                using (StreamWriter sw = System.IO.File.CreateText(path))
+                {
+                    sw.WriteLine(encString);
+                }
+            }
+            else System.IO.File.WriteAllText(path, encString);
+
+            return newAgent;
+        }
+        
+        [HttpPut]
+        [Obsolete]
+        public Agent Put(Agent agent)
+        {
+            var selectedAgent = _context.Agents.FirstOrDefault(a => a.Id == agent.Id);
+            if (selectedAgent == null) return null;
+            else if (selectedAgent.IpAddress != null && selectedAgent.IpAddress != agent.IpAddress) return null;
+            selectedAgent.IpAddress = agent.IpAddress;
+            selectedAgent.MachineID = agent.MachineID;
+            selectedAgent.WinVersion = agent.WinVersion;
+            selectedAgent.Status = agent.Status;
+            selectedAgent.SystemName = agent.SystemName;
+            _context.SaveChanges();
+            return agent;
+        }
+        
+        [HttpPost("processes/{id}")]
+        [Obsolete]
+        public List<ActionResult> allProcesses (string id, List<ProcessInfo> processes)
+        {
+            if(processes.Count > 0)
+            {
+                List<ProcessInfo> storedProcesses = _context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
+                var selectedAgent = _context.Agents.FirstOrDefault(a => a.Id == id);
+                if (selectedAgent == null) return new List<ActionResult>();
+                if (selectedAgent.ProcesseInfos == null) selectedAgent.ProcesseInfos = new List<ProcessInfo>();
+
+                processes.ForEach(p =>
+                {
+                    if (storedProcesses.Count == 0 || !storedProcesses.Any(sp => (sp.Name == p.Name)))
+                    {
+                        ProcessInfo temp = new ProcessInfo()
+                        {
+                            Name = p.Name,
+                            Target = 0,
+                            Action = false,
+                        };
+                        selectedAgent.ProcesseInfos.Add(temp);
+                    }
+                });
+
+                storedProcesses.ForEach(p =>
+                {
+                    if (processes.Any(sp => !(sp.Name == p.Name) && sp.Target == 0 && sp.Action == true))
+                    {
+                        _context.ProcessesInfos.Remove(p);
+                    }
+                });
+
+                _context.SaveChanges();
+            }
+            
+            return _yerraProService.GetShowActions(id).Select(p => new ActionResult(p.Name, p.Action)).ToList();
+        }
+
+        // PUT api/<AgentController>/5
+        [HttpPost]
+        [Route("RegisterProcess")]
+        [Obsolete]
+        public bool RegisterProcess(List<ProcessInfo> processes)
+        {
+            var selectedAgent = _context.Agents.FirstOrDefault(a => a.Id == processes[0].Agent.Id);
+            if (selectedAgent == null) return false;
+            selectedAgent.ProcesseInfos = new List<ProcessInfo>();
+            processes.ForEach(p =>
+            {
+                selectedAgent.ProcesseInfos.Add(new ProcessInfo(p.Name));
+
+            });
+            _context.SaveChanges();
+            return true;
+        }
+
+        // DELETE api/<AgentController>/5
+        [HttpDelete("{id}")]
+        [Obsolete]
+        public Agent Delete(string id)
+        {
+            var selectedAgent = _context.Agents.FirstOrDefault(a => a.Id == id);
+            _context.Agents.Remove(selectedAgent);
+            _context.SaveChanges();
+            return selectedAgent;
+        }
+
+        [HttpGet("download")]
+        public FileResult Download()
+        {
+            string archive = Path.Combine(_hostEnvironment.ContentRootPath, @"temp\archive.zip");
+            if (System.IO.File.Exists(archive))
+            {
+                System.IO.File.Delete(archive);
+            }
+            ZipFile.CreateFromDirectory("./Resources", archive);
+            byte[] fileBytes = System.IO.File.ReadAllBytes(archive);
+
+            return File(fileBytes, "application/zip", "archive.zip");
+        }
+    }
+
+    public class ActionResult
+    {
+        public string ProcessName { get; set; }
+        public bool Action { get; set; }
+
+        public ActionResult(string name, bool action)
+        {
+            ProcessName = name;
+            Action = action;
+        }
+    }
+}
