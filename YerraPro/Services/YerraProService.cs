@@ -31,6 +31,7 @@ namespace YerraPro.Services
         public YerraProService(ApplicationDbContext context)
         {
             _context = context;
+            showActions = new List<ProcessInfo>();
         }
 
         public ApplicationUser Authenticate(string email, string password)

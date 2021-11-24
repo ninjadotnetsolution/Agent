@@ -64,7 +64,7 @@ namespace YerraPro.Controllers
             var selectedProcess = _context.ProcessesInfos.SingleOrDefault(p => p.Id == process.Id);
 
             if (selectedProcess.Target == process.Target) _yerraProService.AddShowAction(process);
-            _context.ProcessesInfos.Update(process);
+            selectedProcess = process;
             _context.SaveChanges();
             return process;
         }

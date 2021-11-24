@@ -219,17 +219,17 @@ const Agents = (props) => {
                                  <th >
                                     Liecense
                                  </th>
-                                 <th>
-                                    System name
+                                <th>
+                                    Machine ID
                                  </th>
                                  <th>
-                                    Windows version
+                                    System Name
                                  </th>
                                  <th>
-                                    Created at
+                                    Windows Version
                                  </th>
                                  <th>
-                                    Available time
+                                    Created At
                                  </th>
                                  <th className="text-center">
                                     Status
@@ -250,16 +250,16 @@ const Agents = (props) => {
                                         {a.id}
                                     </td>
                                     <td>
-                                    {a.systemName}
+                                            {a.machineID}
                                     </td>
                                     <td className="text-center">
-                                    {a.winVersion}
+                                            {a.systemName}
                                     </td>
                                     <td>
-                                    {a.createdDate}
+                                            {a.winVersion}
                                     </td>
                                     <td className="text-center">
-                                    {a.updatedDate}
+                                            {a.createdDate}
                                     </td>
                                     <td className="text-center">
                                         <StatusComponent state={a.status} />
