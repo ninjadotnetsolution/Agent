@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using YerraPro.Controllers;
 using YerraPro.Data;
 using YerraPro.Models;
 
@@ -12,32 +9,73 @@ namespace YerraPro.Services
 {
     public interface IYerraProService
     {
+        ApplicationDbContext context { get; set; }
         ApplicationUser Authenticate(string userName, string password);
         IEnumerable<ApplicationUser> GetAll();
         ApplicationUser GetById(int id);
         ApplicationUser Create(Register user);
         void Update(ApplicationUser user, string password = null);
         void Delete(int id);
-        List<ProcessInfo> GetShowActions(string id);
-        void AddShowAction(ProcessInfo process);
+    }
+
+    public interface IYerraProSingleton
+    {
+        List<ProcessInfo> ShowActions { get; set; }
+        List<ProcessInfo> GetActions(string id);
+        void AddAction(ProcessInfo process);
+
+    }
+
+    public class YerraProSingleton : IYerraProSingleton
+    {
+        public YerraProSingleton()
+        {
+            this._showActions = new List<ProcessInfo>();
+        }
+        private List<ProcessInfo> _showActions { get; set; }
+        public List<ProcessInfo> ShowActions
+        {
+            get => _showActions;
+            set => _showActions = value;
+        }
+        public List<ProcessInfo> GetActions(string id)
+        {
+
+            var selectedActions = _showActions.Where(a => a.AgentId == id).ToList();
+            _showActions.ForEach(p =>
+            {
+                if(p.Target == 0)
+                    _showActions.Remove(p);
+            });
+            return selectedActions;
+        }
+
+        public void AddAction(ProcessInfo action)
+        {
+            _showActions.Add(action);
+        }
     }
 
     public class YerraProService : IYerraProService
     {
-        private ApplicationDbContext _context;
-        private List<ProcessInfo> showActions { get; set; }
+        private ApplicationDbContext _context { get; set; }
+        public ApplicationDbContext context
+        {
+            get => _context;
+            set => _context = value;
+        }
 
+      
         [Obsolete]
         public YerraProService(ApplicationDbContext context)
         {
             _context = context;
-            showActions = new List<ProcessInfo>();
         }
 
         public ApplicationUser Authenticate(string email, string password)
         {
             
-            var user = _context.Users.SingleOrDefault(x => x.Email == email);
+            var user = _context.Users.FirstOrDefault(x => x.Email == email);
 
             // check if ApplicationUsername exists
             if (user == null)
@@ -175,21 +213,7 @@ namespace YerraPro.Services
             return true;
         }
 
-        public List<ProcessInfo> GetShowActions(string id)
-        {
-
-            var selectedActions = this.showActions.Where(a => a.AgentId == id).ToList();
-            this.showActions.ForEach(p =>
-            {
-                this.showActions.Remove(p);
-            });
-            return selectedActions;
-        }
-
-        public void AddShowAction(ProcessInfo action)
-        {
-            this.showActions.Add(action);
-        }
+        
     }
 
     

@@ -16,18 +16,18 @@ namespace YerraPro.Controllers
     [ApiController]
     public class ProcessController : ControllerBase
     {
-        public ApplicationDbContext _context;
         private readonly IYerraProService _yerraProService;
-        public ProcessController(IYerraProService service, ApplicationDbContext context)
+        private readonly IYerraProSingleton _singleton;
+        public ProcessController(IYerraProService service, IYerraProSingleton singleton)
         {
-            _context = context;
             _yerraProService = service;
+            _singleton = singleton;
         }
         // GET: api/<ProcessController>
         [HttpGet]
         public List<ProcessInfo> Get()
         {
-            return _context.ProcessesInfos
+            return _yerraProService.context.ProcessesInfos
                     .Include(p => p.Agent)
                     .ToList();
         }
@@ -38,11 +38,11 @@ namespace YerraPro.Controllers
         {
             if(id == "-1")
             {
-                return _context.ProcessesInfos
+                return _yerraProService.context.ProcessesInfos
                     .Include(p => p.Agent)
                     .Where(p => p.Target == 2).ToList();
             }
-            return _context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).Include(p => p.Agent).ToList();
+            return _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).Include(p => p.Agent).ToList();
                     
         }
 
@@ -51,8 +51,8 @@ namespace YerraPro.Controllers
         [Obsolete]
         public List<ProcessInfo> Post(List<ProcessInfo> processInfos)
         {
-            _context.ProcessesInfos.AddRange(processInfos);
-            _context.SaveChanges();
+            _yerraProService.context.ProcessesInfos.AddRange(processInfos);
+            _yerraProService.context.SaveChanges();
             return processInfos;
         }
         
@@ -61,12 +61,13 @@ namespace YerraPro.Controllers
         [Obsolete]
         public ProcessInfo Put(ProcessInfo process)
         {
-            var selectedProcess = _context.ProcessesInfos.SingleOrDefault(p => p.Id == process.Id);
+            var selectedProcess = _yerraProService.context.ProcessesInfos.SingleOrDefault(p => p.Id == process.Id);
 
-            if (selectedProcess.Target == process.Target) _yerraProService.AddShowAction(process);
-            selectedProcess = process;
-            _context.SaveChanges();
-            return process;
+            if (selectedProcess.Target == process.Target) _singleton.AddAction(process);
+            selectedProcess.Target = process.Target;
+            selectedProcess.Action = process.Action;
+            _yerraProService.context.SaveChanges();
+            return selectedProcess;
         }
 
         // DELETE api/<ProcessController>/5
@@ -74,9 +75,9 @@ namespace YerraPro.Controllers
         [Obsolete]
         public void Delete(int id)
         {
-            var selectedProcess = _context.ProcessesInfos.FirstOrDefault(p => p.Id == id);
-            _context.ProcessesInfos.Remove(selectedProcess);
-            _context.SaveChanges();
+            var selectedProcess = _yerraProService.context.ProcessesInfos.FirstOrDefault(p => p.Id == id);
+            _yerraProService.context.ProcessesInfos.Remove(selectedProcess);
+            _yerraProService.context.SaveChanges();
         }
     }
 }

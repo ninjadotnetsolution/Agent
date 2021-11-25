@@ -45,6 +45,7 @@ namespace YerraPro
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddScoped<IYerraProService, YerraProService>();
+            services.AddSingleton<IYerraProSingleton, YerraProSingleton>();
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -87,10 +88,10 @@ namespace YerraPro
             {
                 spa.Options.SourcePath = "ClientApp";
 
-                if (env.IsDevelopment())
-                {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
-                }
+                //if (env.IsDevelopment())
+                //{
+                //    spa.UseReactDevelopmentServer(npmScript: "start");
+                //}
             });
         }
 

@@ -39,9 +39,8 @@ namespace YerraPro.Data
                 entity.Property(u => u.Email).HasMaxLength(256);
                 entity.Property(u => u.NormalizedEmail).HasMaxLength(256);
 
-
-
             });
+
         }
 
         public override int SaveChanges()

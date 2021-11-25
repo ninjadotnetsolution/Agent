@@ -16,7 +16,7 @@ namespace YerraPro.Controllers
 
         public IClientRequestParametersProvider ClientRequestParametersProvider { get; }
 
-        [HttpGet("_configuration/{clientId}")]
+        [HttpGet("_configuration/{clientId}")]                                                          
         public IActionResult GetClientRequestParameters([FromRoute] string clientId)
         {
             var parameters = ClientRequestParametersProvider.GetClientParameters(HttpContext, clientId);
