@@ -47,6 +47,7 @@ namespace YerraPro.Controllers
                 .Include(a => a.ProcesseInfos)
                 .FirstOrDefault(a => a.Id == id);
         }
+
         [HttpGet("allProcesses/{id}")]
         public List<ProcessInfo> GetAllProcesses(string id)
         {
@@ -105,9 +106,10 @@ namespace YerraPro.Controllers
         [Obsolete]
         public List<ActionResult> setProcesses (string id, List<ProcessInfo> processes)
         {
+                List<ActionResult> result = new List<ActionResult>();
+                List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
             if(processes.Count > 0)
             {
-                List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
                 var selectedAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == id);
                 if (selectedAgent == null) return new List<ActionResult>();
                 if (selectedAgent.ProcesseInfos == null) selectedAgent.ProcesseInfos = new List<ProcessInfo>();
@@ -122,13 +124,19 @@ namespace YerraPro.Controllers
                             Target = 0,
                             Action = false,
                         };
+
                         selectedAgent.ProcesseInfos.Add(temp);
+                        var selectedGlobalAction = _singleton.GetGlobalActions().FirstOrDefault(gp => gp.Name == p.Name);
+                        if (selectedGlobalAction != null)
+                        {
+                            result.Add(new ActionResult(selectedGlobalAction.Name, selectedGlobalAction.Action));
+                        }
                     }
                 });
 
                 storedProcesses.ForEach(p =>
                 {
-                    if (processes.Any(sp => !(sp.Name == p.Name) && sp.Target == 0))
+                    if (!processes.Any(sp => (sp.Name == p.Name) && sp.Target == 0))
                     {
                         _yerraProService.context.ProcessesInfos.Remove(p);
                     }
@@ -137,7 +145,7 @@ namespace YerraPro.Controllers
                 _yerraProService.context.SaveChanges();
             }
             
-            return _singleton.GetActions(id).Select(p => new ActionResult(p.Name, p.Action)).ToList();
+            return storedProcesses.Select(p => new ActionResult(p.Name, p.Action)).ToList();
         }
 
         // PUT api/<AgentController>/5
@@ -163,7 +171,7 @@ namespace YerraPro.Controllers
         [Obsolete]
         public Agent Delete(string id)
         {
-            var selectedAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == id);
+            var selectedAgent = _yerraProService.context.Agents.Include(p => p.ProcesseInfos).FirstOrDefault(a => a.Id == id);
             _yerraProService.context.Agents.Remove(selectedAgent);
             _yerraProService.context.SaveChanges();
             return selectedAgent;

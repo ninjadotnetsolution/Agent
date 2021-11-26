@@ -22,6 +22,7 @@ namespace YerraPro.Services
     {
         List<ProcessInfo> ShowActions { get; set; }
         List<ProcessInfo> GetActions(string id);
+        List<ProcessInfo> GetGlobalActions();
         void AddAction(ProcessInfo process);
 
     }
@@ -38,11 +39,16 @@ namespace YerraPro.Services
             get => _showActions;
             set => _showActions = value;
         }
+
+        public List<ProcessInfo> GetGlobalActions()
+        {
+            return _showActions.Where(p => p.Target == 2).ToList();
+        }
         public List<ProcessInfo> GetActions(string id)
         {
 
             var selectedActions = _showActions.Where(a => a.AgentId == id).ToList();
-            _showActions.ForEach(p =>
+            selectedActions.ForEach(p =>
             {
                 if(p.Target == 0)
                     _showActions.Remove(p);
