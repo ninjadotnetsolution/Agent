@@ -6,6 +6,7 @@ import { AuthReducer } from './reducers/AuthReducer';
 import todoReducers from './reducers/Reducers';
 import { reducer as reduxFormReducer } from 'redux-form';
 import { createLogger } from 'redux-logger'
+import { composeWithDevTools } from 'redux-devtools-extension';
 
 const asyncDispatchMiddleware = store => next => action => {
     let syncActivityFinished = false;
@@ -40,7 +41,7 @@ let composeEnhancers = compose;
 
 if(!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
     middlewares.push(createLogger());
-    composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
+    composeEnhancers = composeWithDevTools
 }
 
 const middleware = applyMiddleware(...middlewares);

@@ -55,6 +55,8 @@ const Agents = (props) => {
     const [byFilter, setByFilter] = useState(100);
     const [searchKey, setSearchKey] = useState('');
     const [paggination, setPaggination] = useState([]);
+    const [modalCentered, setModalCentered] = useState(false);
+    const [newDomain, setNewDomain] = useState('');
 
     const sort = 8;
 
@@ -107,9 +109,9 @@ const Agents = (props) => {
                 setAgents(res.data);
             });
     }, [])
-
+    
     const newAgent = () => {
-        axios.post(`${BASE_URL}/api/agent`)
+        axios.post(`${BASE_URL}/api/agent`, { domain: newDomain })
             .then(res => {
                 setAgents([res.data, ...agents]);
                 axios({
@@ -152,12 +154,53 @@ const Agents = (props) => {
       <Fragment>
             <div className="row mb-3">
                <div className="col-md-12 text-right">
-                     <Button variant="info btn-rounded" onClick={newAgent}>
+                   <Button variant="info btn-rounded" onClick={() => setModalCentered(true)}>
                         <span className="btn-icon-left text-info">
                            <i className="fa fa-plus color-info" />
                         </span>
                         Create
-                     </Button>
+                   </Button>
+
+                   <Modal className="fade" show={modalCentered}>
+                       <Modal.Header>
+                           <Modal.Title>Modal title</Modal.Title>
+                           <Button
+                               onClick={() => setModalCentered(false)}
+                               variant=""
+                               className="close"
+                           >
+                               <span>&times;</span>
+                           </Button>
+                       </Modal.Header>
+                       <Modal.Body>
+                           <div className="form-group">
+                               <div className="form-group row">
+                                   <label className="col-sm-3 col-form-label">
+                                       Domain
+                                   </label>
+                                   <div className="col-sm-9">
+                                       <input
+                                           type="text"
+                                           className="form-control"
+                                           placeholder="Domain"
+                                           onChange={e => setNewDomain(e.target.value)}
+                                       />
+                                   </div>
+                               </div>
+
+                           </div>
+                       </Modal.Body>
+                       <Modal.Footer>
+                           <Button
+                               onClick={() => setModalCentered(false)}
+                               variant="danger light"
+                           >
+                               Close
+                           </Button>
+                           <Button variant="primary" onClick={newAgent}>Create Agent</Button>
+                       </Modal.Footer>
+                   </Modal>
+
 
                </div>
             </div>

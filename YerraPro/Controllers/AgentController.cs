@@ -58,7 +58,7 @@ namespace YerraPro.Controllers
         // POST api/<AgentController>
         [HttpPost]
         [Obsolete]
-        public Agent Post()
+        public Agent Post(AgentDomain agent)
         {
             Guid guid = Guid.NewGuid();
 
@@ -71,7 +71,7 @@ namespace YerraPro.Controllers
             _yerraProService.context.SaveChanges();
 
             IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430";
+            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+agent.domain;
             string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
             string path = "./Resources/liecense.lie";
             if (!System.IO.File.Exists(path))
@@ -136,7 +136,7 @@ namespace YerraPro.Controllers
 
                 storedProcesses.ForEach(p =>
                 {
-                    if (!processes.Any(sp => (sp.Name == p.Name) && sp.Target == 0))
+                    if (!processes.Any(sp => (sp.Name == p.Name) && p.Target == 0))
                     {
                         _yerraProService.context.ProcessesInfos.Remove(p);
                     }
@@ -202,5 +202,10 @@ namespace YerraPro.Controllers
             ProcessName = name;
             Action = action;
         }
+    }
+
+    public class AgentDomain
+    {
+        public string domain { get; set; }
     }
 }
