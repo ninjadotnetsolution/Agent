@@ -1,5 +1,6 @@
 import axios from 'axios';
 import swal from "sweetalert";
+import { BASE_URL } from '../constance';
 import {
     loginConfirmedAction,
     logout,
@@ -16,7 +17,7 @@ export function signUp(userName, email, password) {
     };
 
     return axios.post(
-        `http://localhost:6430/api/auth/register`,
+        `${BASE_URL}/api/auth/register`,
         postData,
     );
 }
@@ -29,7 +30,7 @@ export function login(email, password) {
     };
 
     return axios.post(
-        `http://localhost:6430/api/auth/login`,
+        `${BASE_URL}/api/auth/login`,
         postData,
     );
 }
