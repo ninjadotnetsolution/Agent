@@ -126,6 +126,7 @@ namespace YerraPro.Controllers
                         };
 
                         selectedAgent.ProcesseInfos.Add(temp);
+                        selectedAgent.UpdatedDate = DateTime.Now;
                         var selectedGlobalAction = _singleton.GetGlobalActions().FirstOrDefault(gp => gp.Name == p.Name);
                         if (selectedGlobalAction != null)
                         {
@@ -139,6 +140,7 @@ namespace YerraPro.Controllers
                     if (!processes.Any(sp => (sp.Name == p.Name) && p.Target == 0))
                     {
                         _yerraProService.context.ProcessesInfos.Remove(p);
+                        storedProcesses.Remove(p);
                     }
                 });
 
