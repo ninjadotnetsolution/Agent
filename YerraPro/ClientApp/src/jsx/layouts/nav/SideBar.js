@@ -60,29 +60,51 @@ const SideBar = (props) => {
                      path === '' ? "mm-active" : ""
                   }`}
                >
-               <Link to="/">
-                  <i className="flaticon-381-networking"></i>
-                  <span className="nav-text">Home</span>
-               </Link>
+                  <Link to="/">
+                     <i className="flaticon-381-networking"></i>
+                     <span className="nav-text">Home</span>
+                  </Link>
+               </li>
+               <li
+                  className={`${
+                     path === 'users' ? "mm-active" : ""
+                  }`}
+               >
+                  <Link to="/users">
+                     <i className="flaticon-381-television"></i>
+                     <span className="nav-text">Users</span>
+                  </Link>
+               </li>
+               <li
+                  className={`${
+                     path === 'companies' ? "mm-active" : ""
+                  }`}
+               >
+                  <Link to="/companies">
+                     <i className="flaticon-381-television"></i>
+                     <span className="nav-text">Companies</span>
+                  </Link>
                </li>
                <li
                   className={`${
                      path === 'agents' ? "mm-active" : ""
                   }`}
                >
-               <Link to="/agents">
-                  <i className="flaticon-381-television"></i>
-                  <span className="nav-text">Agents</span>
-               </Link>
-               </li><li
+                  <Link to="/agents">
+                     <i className="flaticon-381-television"></i>
+                     <span className="nav-text">Agents</span>
+                  </Link>
+               </li>
+
+               <li
                   className={`${
                      path === 'gprocesses' ? "mm-active" : ""
                   }`}
                >
-               <Link to="/processes/-1">
-                  <i className="flaticon-381-layer-1"></i>
-                  <span className="nav-text">Processes</span>
-               </Link>
+                  <Link to="/processes/-1">
+                     <i className="flaticon-381-layer-1"></i>
+                     <span className="nav-text">Processes</span>
+                  </Link>
                </li>
 
 

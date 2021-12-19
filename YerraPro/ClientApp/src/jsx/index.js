@@ -22,12 +22,13 @@ import Error403 from './pages/Error403'
 import Error404 from './pages/Error404'
 import Error500 from './pages/Error500'
 import Error503 from './pages/Error503'
-import Todo from './pages/Todo';
 
 //Scroll To Top
 import ScrollToTop from './layouts/ScrollToTop';
 import Agents from './components/table/Agents'
 import Processes from './components/table/Processes'
+import Companies from './components/table/Companies'
+import Users from './components/table/Users'
 
 
 const Markup = () => {
@@ -41,6 +42,8 @@ const Markup = () => {
     /// Dashboard
     { url: '', component: Home },
     { url: 'agents', component: Agents },
+    { url: 'companies', component: Companies },
+    { url: 'users', component: Users },
     { url: 'processes/:agentId', component: Processes },
     { url: 'dashboard', component: Home },
 

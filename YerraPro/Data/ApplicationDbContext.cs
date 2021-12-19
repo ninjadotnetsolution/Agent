@@ -21,7 +21,7 @@ namespace YerraPro.Data
 
         public virtual DbSet<ProcessInfo> ProcessesInfos { get; set; }
         public virtual DbSet<Agent> Agents { get; set; }
-
+        public virtual DbSet<Company> Companies { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -30,7 +30,7 @@ namespace YerraPro.Data
                 entity.HasKey(u => u.Id);
                 entity.HasIndex(u => u.NormalizedUserName).HasName("UserNameIndex").IsUnique();
                 entity.HasIndex(u => u.NormalizedEmail).HasName("EmailIndex").IsUnique();
-                entity.ToTable(name: "User");
+                entity.ToTable(name: "Users");
 
                 entity.Property(u => u.ConcurrencyStamp).IsConcurrencyToken();
 
@@ -53,11 +53,11 @@ namespace YerraPro.Data
 
             foreach (var entityEntry in entries)
             {
-                ((BaseModel)entityEntry.Entity).UpdatedDate = DateTime.Now;
+                ((BaseModel)entityEntry.Entity).UpdatedAt = DateTime.Now;
 
                 if (entityEntry.State == EntityState.Added)
                 {
-                    ((BaseModel)entityEntry.Entity).CreatedDate = DateTime.Now;
+                    ((BaseModel)entityEntry.Entity).CreatedAt = DateTime.Now;
                 }
             }
 

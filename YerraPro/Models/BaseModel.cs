@@ -7,7 +7,7 @@ namespace YerraPro.Models
 {
     public class BaseModel
     {
-        public DateTime CreatedDate { get; set; }
-        public DateTime UpdatedDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }

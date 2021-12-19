@@ -1,21 +1,23 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using YerraPro.Data;
 using YerraPro.Models;
+using YerraPro.ViewModels;
 
 namespace YerraPro.Services
 {
     public interface IYerraProService
     {
         ApplicationDbContext context { get; set; }
-        ApplicationUser Authenticate(string userName, string password);
-        IEnumerable<ApplicationUser> GetAll();
-        ApplicationUser GetById(int id);
-        ApplicationUser Create(Register user);
+        UserVM Authenticate(string userName, string password);
+        List<UserVM> GetAll();
+        UserVM GetById(string id);
+        UserVM Create(Register user);
         void Update(ApplicationUser user, string password = null);
-        void Delete(int id);
+        void Delete(string id);
     }
 
     public interface IYerraProSingleton
@@ -32,6 +34,7 @@ namespace YerraPro.Services
         public YerraProSingleton()
         {
             this._showActions = new List<ProcessInfo>();
+
         }
         private List<ProcessInfo> _showActions { get; set; }
         public List<ProcessInfo> ShowActions
@@ -70,15 +73,48 @@ namespace YerraPro.Services
             get => _context;
             set => _context = value;
         }
-
       
         [Obsolete]
         public YerraProService(ApplicationDbContext context)
         {
             _context = context;
+
+            if(_context.Roles.Count() == 0)
+            {
+                _context.Roles.Add(new IdentityRole() { Name = "SuperAdmin" });
+                _context.Roles.Add(new IdentityRole() { Name = "CompanyAdmin" });
+            }
+            _context.SaveChanges();
+
+            if(_context.Users.Count() == 0)
+            {
+                var selRole = _context.Roles.FirstOrDefault(r => r.Name == "SuperAdmin");
+                if(selRole != null)
+                {
+                    string passwordHash;
+                    byte[] passwordSalt;
+                    CreatePasswordHash("elder", out passwordHash, out passwordSalt);
+
+                    ApplicationUser newUser = new ApplicationUser();
+                    newUser.PasswordHash = passwordHash;
+                    newUser.PasswordSalt = passwordSalt;
+                    newUser.Email = "superadmin@gmail.com";
+                    newUser.UserName = "superadmin";
+                    _context.Users.Add(newUser);
+                    _context.SaveChanges();
+
+                    _context.UserRoles.Add(new IdentityUserRole<string>()
+                    {
+                        UserId = newUser.Id,
+                        RoleId = selRole.Id
+                    });
+                    _context.SaveChanges();
+                }
+                
+            }
         }
 
-        public ApplicationUser Authenticate(string email, string password)
+        public UserVM Authenticate(string email, string password)
         {
             
             var user = _context.Users.FirstOrDefault(x => x.Email == email);
@@ -91,22 +127,34 @@ namespace YerraPro.Services
             if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
                 throw new Exception("INVALID_PASSWORD");
 
-            // authentication successful
-            
-            return user;
+            var roleIds = _context.UserRoles.Where(r => r.UserId == user.Id).Select(r => r.RoleId);
+
+            var roleNames = _context.Roles.Where(r => roleIds.Any(rId => rId == r.Id)).Select(r => r.Name).ToList();
+
+            return new UserVM(user, roleNames);
         }
 
-        public IEnumerable<ApplicationUser> GetAll()
+        public List<UserVM> GetAll()
         {
-            return _context.Users;
+            return (from user in _context.Users.AsQueryable()
+                         select new UserVM(
+                             user,
+                             _context.UserRoles.Join(
+                                 _context.Roles,
+                                 ur => ur.RoleId,
+                                 r => r.Id, (ur, r) => new { UserId = ur.UserId, RoleName = r.Name })
+                             .Where(r => r.UserId == user.Id)
+                             .Select(r => r.RoleName).ToList())).ToList();
         }
 
-        public ApplicationUser GetById(int id)
+        public UserVM GetById(string id)
         {
-            return _context.Users.Find(id);
+            var selUser = _context.Users.FirstOrDefault(u => u.Id == id);
+            var roleNames = _context.UserRoles.Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name).ToList();
+            return new UserVM(selUser, roleNames);
         }
 
-        public ApplicationUser Create(Register user)
+        public UserVM Create(Register user)
         {
             // validation
             
@@ -116,21 +164,33 @@ namespace YerraPro.Services
             if (_context.Users.Any(x => x.Email == user.Email))
                 throw new Exception("EMAIL_EXISTS");
 
-            
-            string passwordHash;
-            byte[] passwordSalt;
-            CreatePasswordHash(user.Password, out passwordHash, out passwordSalt);
+            var selRole = _context.Roles.FirstOrDefault(r => r.Name == "CompanyAdmin");
+            if (selRole != null)
+            {
 
-            ApplicationUser newUser = new ApplicationUser();
-            newUser.PasswordHash = passwordHash;
-            newUser.PasswordSalt = passwordSalt;
-            newUser.Email = user.Email;
-            newUser.UserName = user.UserName;
+                string passwordHash;
+                byte[] passwordSalt;
+                CreatePasswordHash(user.Password, out passwordHash, out passwordSalt);
 
-            _context.Users.Add(newUser);
-            _context.SaveChanges();
+                ApplicationUser newUser = new ApplicationUser();
+                newUser.PasswordHash = passwordHash;
+                newUser.PasswordSalt = passwordSalt;
+                newUser.Email = user.Email;
+                newUser.UserName = user.UserName;
 
-            return newUser;
+                _context.Users.Add(newUser);
+                _context.SaveChanges();
+
+                _context.UserRoles.Add(new IdentityUserRole<string>()
+                {
+                    UserId = newUser.Id,
+                    RoleId = selRole.Id
+                });
+                _context.SaveChanges();
+
+                return new UserVM(newUser, new List<string>() { selRole.Name});
+            }
+            return null;
         }
 
         public void Update(ApplicationUser userParam, string password = null)
@@ -166,9 +226,9 @@ namespace YerraPro.Services
             _context.SaveChanges();
         }
 
-        public void Delete(int id)
+        public void Delete(string id)
         {
-            var user = _context.Users.Find(id);
+            var user = _context.Users.FirstOrDefault(u => u.Id == id);
             if (user != null)
             {
                 _context.Users.Remove(user);
@@ -218,9 +278,5 @@ namespace YerraPro.Services
 
             return true;
         }
-
-        
     }
-
-    
 }

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import axios from 'axios'
 import { BASE_URL } from "../../../constance/index.js";
 import { useInterval } from "../UseInterval.js";
+import Select from "react-select";
 
 const CheckComponent = ({state}) => (
    <div className="custom-control custom-checkbox">
@@ -43,28 +44,31 @@ const StatusComponent = ({state}) => {
             <i className="fa fa-circle text-success mr-1"></i>
             Approve
          </Badge>
-
    }
 }
 
 const Agents = (props) => {
 
     const [agents, setAgents] = useState([])
+    const [companies, setCompanies] = useState([])
     const [filteredAgents, setFilteredAgents] = useState([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [byFilter, setByFilter] = useState(100);
     const [searchKey, setSearchKey] = useState('');
     const [paggination, setPaggination] = useState([]);
     const [modalCentered, setModalCentered] = useState(false);
-    const [newDomain, setNewDomain] = useState('');
+    const [company, setCompany] = useState('');
 
     const sort = 8;
 
     useInterval(() => {
+        axios.get(`${BASE_URL}/api/companies`)
+            .then(res => {
+                setCompanies(res.data.map(c => ({ id: c.id, label: c.label, value: c.value })));
+            });
         axios.get(`${BASE_URL}/api/agent`)
             .then(res => {
                 console.log(res.data.map(a => {
-
                     return a;
                 }))
                 setAgents(res.data);
@@ -115,7 +119,7 @@ const Agents = (props) => {
     }, [])
     
     const newAgent = () => {
-        axios.post(`${BASE_URL}/api/agent`, { domain: newDomain })
+        axios.post(`${BASE_URL}/api/agent`, { companyId: company.id })
             .then(res => {
                 setAgents([res.data, ...agents]);
                 axios({
@@ -180,14 +184,17 @@ const Agents = (props) => {
                            <div className="form-group">
                                <div className="form-group row">
                                    <label className="col-sm-3 col-form-label">
-                                       Domain
+                                       Company
                                    </label>
                                    <div className="col-sm-9">
-                                       <input
-                                           type="text"
-                                           className="form-control"
-                                           placeholder="Domain"
-                                           onChange={e => setNewDomain(e.target.value)}
+                                       <Select
+                                           onChange={setCompany}
+                                           options={companies}
+                                           style={{
+                                               lineHeight: "40px",
+                                               color: "#7e7e7e",
+                                               paddingLeft: " 15px",
+                                           }}
                                        />
                                    </div>
                                </div>
@@ -306,7 +313,7 @@ const Agents = (props) => {
                                             {a.winVersion}
                                     </td>
                                     <td className="text-center">
-                                            {a.createdDate}
+                                            {a.createdAt}
                                     </td>
                                     <td className="text-center">
                                         <StatusComponent state={a.status} />

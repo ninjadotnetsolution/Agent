@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using YerraPro.Data;
 using YerraPro.Models;
 using YerraPro.Services;
+using YerraPro.ViewModels;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -20,20 +21,7 @@ namespace YerraPro.Controllers
         {
             _yerraProService = service;
         }
-        // GET: api/<AccountController>
-        [HttpGet]
-        public IEnumerable<ApplicationUser> GetUsers()
-        {
-            return _yerraProService.GetAll();
-        }
-
-        // GET api/<AccountController>/5
-        [HttpGet("{id}")]
-        public ApplicationUser Get(int id)
-        {
-            return _yerraProService.GetById(id);
-        }
-
+        
         // POST api/account/register
         [HttpPost]
         [Route("Register")]
@@ -76,11 +64,6 @@ namespace YerraPro.Controllers
         //    _yerraProService.UpdateUser(id, user);
         //}
 
-        // DELETE api/<AccountController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-            _yerraProService.Delete(id);
-        }
+        
     }
 }

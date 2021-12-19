@@ -13,7 +13,7 @@ namespace YerraPro.Models
         public bool Action { get; set; }
         [System.Text.Json.Serialization.JsonIgnore]
         public Agent Agent { get; set; }
-        public string? AgentId { get; set; }
+        public string AgentId { get; set; }
 
         public ProcessInfo(string name)
         {

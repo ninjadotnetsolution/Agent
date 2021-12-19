@@ -58,20 +58,21 @@ namespace YerraPro.Controllers
         // POST api/<AgentController>
         [HttpPost]
         [Obsolete]
-        public Agent Post(AgentDomain agent)
+        public Agent Post(Agent agent)
         {
             Guid guid = Guid.NewGuid();
 
-            var newAgent = new Agent()
-            {
-                Id = guid.ToString()
-            };
+            var selCompany = _yerraProService.context.Companies.FirstOrDefault(c => c.Id == agent.CompanyId);
+            if (selCompany == null) return null;
 
-            _yerraProService.context.Agents.Add(newAgent);
+            agent.Id = guid.ToString();
+            agent.Domain = selCompany.Domain;
+
+            _yerraProService.context.Agents.Add(agent);
             _yerraProService.context.SaveChanges();
 
             IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+agent.domain;
+            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+selCompany.Domain;
             string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
             string path = "./Resources/liecense.lie";
             if (!System.IO.File.Exists(path))
@@ -83,7 +84,7 @@ namespace YerraPro.Controllers
             }
             else System.IO.File.WriteAllText(path, encString);
 
-            return newAgent;
+            return agent;
         }
         
         [HttpPut]
@@ -126,7 +127,7 @@ namespace YerraPro.Controllers
                         };
 
                         selectedAgent.ProcesseInfos.Add(temp);
-                        selectedAgent.UpdatedDate = DateTime.Now;
+                        selectedAgent.UpdatedAt = DateTime.Now;
                         var selectedGlobalAction = _singleton.GetGlobalActions().FirstOrDefault(gp => gp.Name == p.Name);
                         if (selectedGlobalAction != null)
                         {
@@ -206,8 +207,8 @@ namespace YerraPro.Controllers
         }
     }
 
-    public class AgentDomain
+    public class AgentCompany
     {
-        public string domain { get; set; }
+        public string companyId { get; set; }
     }
 }
