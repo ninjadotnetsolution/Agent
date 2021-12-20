@@ -60,29 +60,41 @@ namespace YerraPro.Controllers
         [Obsolete]
         public Agent Post(Agent agent)
         {
-            Guid guid = Guid.NewGuid();
 
-            var selCompany = _yerraProService.context.Companies.FirstOrDefault(c => c.Id == agent.CompanyId);
+            var selCompany = _yerraProService.context.Companies.FirstOrDefault(c => c.CompanyName == agent.CompanyName);
             if (selCompany == null) return null;
 
-            agent.Id = guid.ToString();
-            agent.Domain = selCompany.Domain;
+            var selAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == agent.Id);
+            if (selAgent != null)
+            {
+                selAgent.IpAddress = agent.IpAddress;
+                selAgent.MachineID = agent.MachineID;
+                selAgent.WinVersion = agent.WinVersion;
+                selAgent.Status = agent.Status;
+                selAgent.CompanyName = agent.CompanyName;
+                selAgent.SystemName = agent.SystemName;
+                _yerraProService.context.SaveChanges();
 
-            _yerraProService.context.Agents.Add(agent);
+                return selAgent;
+            }else
+            {
+                agent.CompanyId = selCompany.Id;
+                _yerraProService.context.Agents.Add(agent);
+            }
             _yerraProService.context.SaveChanges();
 
-            IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+selCompany.Domain;
-            string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
-            string path = "./Resources/liecense.lie";
-            if (!System.IO.File.Exists(path))
-            {
-                using (StreamWriter sw = System.IO.File.CreateText(path))
-                {
-                    sw.WriteLine(encString);
-                }
-            }
-            else System.IO.File.WriteAllText(path, encString);
+            //IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+            //string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+selCompany.Domain;
+            //string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
+            //string path = "./Resources/liecense.lie";
+            //if (!System.IO.File.Exists(path))
+            //{
+            //    using (StreamWriter sw = System.IO.File.CreateText(path))
+            //    {
+            //        sw.WriteLine(encString);
+            //    }
+            //}
+            //else System.IO.File.WriteAllText(path, encString);
 
             return agent;
         }
@@ -107,11 +119,11 @@ namespace YerraPro.Controllers
         [Obsolete]
         public List<ActionResult> setProcesses (string id, List<ProcessInfo> processes)
         {
-                List<ActionResult> result = new List<ActionResult>();
-                List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
+            List<ActionResult> result = new List<ActionResult>();
+            List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
             if(processes.Count > 0)
             {
-                var selectedAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == id);
+                var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcesseInfos).FirstOrDefault(a => a.Id == id);
                 if (selectedAgent == null) return new List<ActionResult>();
                 if (selectedAgent.ProcesseInfos == null) selectedAgent.ProcesseInfos = new List<ProcessInfo>();
 
@@ -141,14 +153,13 @@ namespace YerraPro.Controllers
                     if (!processes.Any(sp => (sp.Name == p.Name) && p.Target == 0))
                     {
                         _yerraProService.context.ProcessesInfos.Remove(p);
-                        storedProcesses.Remove(p);
                     }
                 });
 
                 _yerraProService.context.SaveChanges();
             }
             
-            return storedProcesses.Select(p => new ActionResult(p.Name, p.Action)).ToList();
+            return _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).Select(p => new ActionResult(p.Name, p.Action)).ToList();
         }
 
         // PUT api/<AgentController>/5
