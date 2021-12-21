@@ -11,7 +11,7 @@ namespace YerraPro.Models
         public byte[] PasswordSalt { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
-        public long CompanyId { get; set; }
+        public long? CompanyId { get; set; }
         public Company Company { get; set; }
     }
 }

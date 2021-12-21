@@ -12,7 +12,7 @@ import loginbg from "../../images/login-bg-4.jpg";
 //import loginbg from "../../images/login-bg-1.jpg";
 
 function Login (props) {
-  const [email, setEmail] = useState('me@gmail.com');
+    const [email, setEmail] = useState('superadmin@gmail.com');
     let errorsObj = { email: '', password: '' };
     const [errors, setErrors] = useState(errorsObj);
     const [password, setPassword] = useState('elder');

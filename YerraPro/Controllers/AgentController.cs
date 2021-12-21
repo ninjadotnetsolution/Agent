@@ -48,6 +48,26 @@ namespace YerraPro.Controllers
                 .FirstOrDefault(a => a.Id == id);
         }
 
+        [HttpGet("checkstate/{id}")]
+        [Obsolete]
+        public int CheckState(string id)
+        {
+            return _yerraProService.context.Agents
+                .FirstOrDefault(a => a.Id == id).Status;
+        }
+
+        [HttpGet("turnoff/{id}")]
+        [Obsolete]
+        public void turnoff(string id)
+        {
+            var selAgent = _yerraProService.context.Agents
+                .FirstOrDefault(a => a.Id == id);
+            selAgent.Status = 4;
+            var selProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id);
+            _yerraProService.context.ProcessesInfos.RemoveRange(selProcesses);
+            _yerraProService.context.SaveChanges();
+        }
+
         [HttpGet("allProcesses/{id}")]
         public List<ProcessInfo> GetAllProcesses(string id)
         {
@@ -119,11 +139,13 @@ namespace YerraPro.Controllers
         [Obsolete]
         public List<ActionResult> setProcesses (string id, List<ProcessInfo> processes)
         {
+
+            var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcesseInfos).FirstOrDefault(a => a.Id == id);
+            if (selectedAgent.Status != 1) return null;
             List<ActionResult> result = new List<ActionResult>();
             List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
             if(processes.Count > 0)
             {
-                var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcesseInfos).FirstOrDefault(a => a.Id == id);
                 if (selectedAgent == null) return new List<ActionResult>();
                 if (selectedAgent.ProcesseInfos == null) selectedAgent.ProcesseInfos = new List<ProcessInfo>();
 
@@ -140,11 +162,6 @@ namespace YerraPro.Controllers
 
                         selectedAgent.ProcesseInfos.Add(temp);
                         selectedAgent.UpdatedAt = DateTime.Now;
-                        var selectedGlobalAction = _singleton.GetGlobalActions().FirstOrDefault(gp => gp.Name == p.Name);
-                        if (selectedGlobalAction != null)
-                        {
-                            result.Add(new ActionResult(selectedGlobalAction.Name, selectedGlobalAction.Action));
-                        }
                     }
                 });
 

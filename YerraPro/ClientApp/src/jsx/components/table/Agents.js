@@ -24,25 +24,34 @@ const CheckComponent = ({state}) => (
 const StatusComponent = ({state}) => {
    switch (state) {
       case 0:
-         return <Badge variant="success light">
+         return <Badge variant="primary light">
             <i className="fa fa-circle text-success mr-1"></i>
-            Approve
+            Installed
          </Badge>
       case 1:
-           return <Badge variant="warning light">
+           return <Badge variant="success light">
                <i className="fa fa-circle text-warning mr-1"></i>
-            Accepted
+            Running
          </Badge>
       case 2:
            return <Badge variant="danger light">
                <i className="fa fa-circle text-danger mr-1"></i>
-            Rejected
-         </Badge>
-   
+            Stoped
+           </Badge>
+       case 3:
+           return <Badge variant="warning light">
+               <i className="fa fa-circle text-danger mr-1"></i>
+               Uninstalled
+           </Badge>
+      case 4:
+           return <Badge variant="secondary light">
+               <i className="fa fa-circle text-success mr-1"></i>
+               Turned off
+           </Badge>
       default:
-         return <Badge variant="success light">
+           return <Badge variant="secondary light">
             <i className="fa fa-circle text-success mr-1"></i>
-            Approve
+            Turned off
          </Badge>
    }
 }
@@ -148,11 +157,15 @@ const Agents = (props) => {
     const byFilterLabel = id => {
         switch (id) {
             case 0:
-                return 'Approve';
+                return 'Installed';
             case 1:
-                return 'Accepted';
+                return 'Starting';
             case 2:
-                return 'Rejected';
+                return 'Stoped';
+            case 3:
+                return 'Uninstalled';
+            case 4:
+                return 'Turned off';
             default:
                 return 'All';
         }
@@ -365,12 +378,15 @@ const Agents = (props) => {
                                             </Dropdown.Toggle>
                                                 <Dropdown.Menu>
                                                     <Dropdown.Item to="#" onClick={() => onSetAgentState({ status: 1, agent: a })}>
-                                                    Accept
+                                                    Start
                                                 </Dropdown.Item>
                                                 <Dropdown.Item to="#" onClick={() => onSetAgentState({ status: 2, agent: a })}>
-                                                    Reject
+                                                    Stop
                                                 </Dropdown.Item>
-                                                    <Dropdown.Item to="#" onClick={() => deleteAgent(a.id)}>
+                                                <Dropdown.Item to="#" onClick={() => onSetAgentState({ status: 3, agent: a })}>
+                                                    Uninstall
+                                                </Dropdown.Item>
+                                                <Dropdown.Item to="#" onClick={() => deleteAgent(a.id)}>
                                                     Delete
                                                 </Dropdown.Item>
                                                 <Dropdown.Item to="#" onClick={() => onSetAgentState({ status: 100, agent: a })}>

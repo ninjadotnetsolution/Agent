@@ -23,7 +23,7 @@ const Login = lazy(() => {
 function App (props) {
     const dispatch = useDispatch();
     useEffect(() => {
-        //checkAutoLogin(dispatch, props.history);
+        checkAutoLogin(dispatch, props.history);
     }, [dispatch, props.history]);
     
     let routes = (  
@@ -35,7 +35,7 @@ function App (props) {
         </Switch>
     );
 
-    if (!props.isAuthenticated) {
+    if (props.isAuthenticated) {
 		return (
 			<>
                 <Suspense fallback={

@@ -31,7 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\User\" />
     <Folder Include="temp\" />
     <Folder Include="Resources\" />
   </ItemGroup>

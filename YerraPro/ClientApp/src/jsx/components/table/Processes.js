@@ -28,7 +28,6 @@ const StatusComponent = ({state}) => {
                <i className="fa fa-circle text-success mr-1"></i>
                Current
            </Badge>
-
    }
 }
 const Processes = () => {
