@@ -90,7 +90,6 @@ namespace YerraPro.Controllers
                 selAgent.IpAddress = agent.IpAddress;
                 selAgent.MachineID = agent.MachineID;
                 selAgent.WinVersion = agent.WinVersion;
-                selAgent.Status = agent.Status;
                 selAgent.CompanyName = agent.CompanyName;
                 selAgent.SystemName = agent.SystemName;
                 _yerraProService.context.SaveChanges();

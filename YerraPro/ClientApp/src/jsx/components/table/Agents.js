@@ -77,9 +77,6 @@ const Agents = (props) => {
             });
         axios.get(`${BASE_URL}/api/agent`)
             .then(res => {
-                console.log(res.data.map(a => {
-                    return a;
-                }))
                 setAgents(res.data);
             });
     }, 5000)
