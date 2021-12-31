@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using YerraPro.Data;
 using YerraPro.Models;
 using YerraPro.Services;
+using YerraPro.ViewModels;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -34,28 +35,51 @@ namespace YerraPro.Controllers
 
         // GET api/<ProcessController>/5
         [HttpGet("{id}")]
-        public List<ProcessInfo> Get(string id)
+        public IActionResult Get(string id)
         {
             if(id == "-1")
             {
-                return _yerraProService.context.ProcessesInfos
-                    .Include(p => p.Agent)
-                    .Where(p => p.Target == 2).ToList();
+                return Ok(_yerraProService.context
+                    .ProcessesInfos
+                    .Where(p => p.Target == 2)
+                    .Select(p => new ProcessVM(p)).ToList());
             }
-            return _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).Include(p => p.Agent).ToList();
+            return Ok(_yerraProService.context
+                .ProcessesInfos
+                .Where(p => p.AgentId == id || p.Target == 2)
+                .Select(p => new ProcessVM(p)).ToList());
                     
         }
 
+        [HttpGet("bycompanyid/{id}")]
+        public IActionResult GetByCompnayId(string id)
+        {
+            return Ok(_yerraProService.context
+                .ProcessesInfos
+                .Where(p => p.CompanyId == id || p.Target == 3)
+                .Select(p => new ProcessVM(p)).ToList());
+
+        }
+
         // POST api/<ProcessController>
-        [HttpPost]
+        [HttpPost("muliple")]
         [Obsolete]
-        public List<ProcessInfo> Post(List<ProcessInfo> processInfos)
+        public List<ProcessInfo> CreateRange(List<ProcessInfo> processInfos)
         {
             _yerraProService.context.ProcessesInfos.AddRange(processInfos);
             _yerraProService.context.SaveChanges();
             return processInfos;
         }
-        
+
+        [HttpPost]
+        [Obsolete]
+        public ProcessInfo Create(ProcessInfo processInfos)
+        {
+            _yerraProService.context.ProcessesInfos.Add(processInfos);
+            _yerraProService.context.SaveChanges();
+            return processInfos;
+        }
+
         // PUT api/<ProcessController>/5
         [HttpPut]
         [Obsolete]

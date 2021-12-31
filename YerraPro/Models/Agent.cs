@@ -8,16 +8,18 @@ namespace YerraPro.Models
     {
         [Key]
         public string Id { get; set; }
-        public string SystemName { get; set; }
-        public string WinVersion { get; set; }
         public string IpAddress { get; set; }
         public string MachineID { get; set; }
-        public long CompanyId { get; set; }
+        public string CompanyId { get; set; }
         public string CompanyName { get; set; }
-        public string Domain { get; set; }
         public int Status { get; set; }
+        public SystemInfo SystemInfo { get; set; }
+        public ICollection<ProcessInfo> ProcessInfos { get; set; }
 
-        [System.Text.Json.Serialization.JsonIgnore]
-        public ICollection<ProcessInfo> ProcesseInfos { get; set; }
+        public Agent()
+        {
+            SystemInfo = new SystemInfo();
+            ProcessInfos = new List<ProcessInfo>();
+        }
     }
 }

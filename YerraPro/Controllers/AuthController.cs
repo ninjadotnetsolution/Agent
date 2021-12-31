@@ -32,7 +32,7 @@ namespace YerraPro.Controllers
             try
             {
                 // create user
-                return Ok(_yerraProService.Create(user));
+                return Ok(_yerraProService.Register(user));
             }
             catch (Exception ex)
             {

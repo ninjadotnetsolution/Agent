@@ -241,17 +241,14 @@ namespace YerraPro.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<long>("CompanyId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("CompanyName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Domain")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IpAddress")
                         .HasColumnType("nvarchar(max)");
@@ -262,16 +259,12 @@ namespace YerraPro.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<string>("SystemName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("WinVersion")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
 
                     b.ToTable("Agents");
                 });
@@ -284,8 +277,11 @@ namespace YerraPro.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<long>("CompanyId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -300,6 +296,12 @@ namespace YerraPro.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
+
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -330,6 +332,9 @@ namespace YerraPro.Migrations
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("bit");
 
@@ -359,19 +364,32 @@ namespace YerraPro.Migrations
 
             modelBuilder.Entity("YerraPro.Models.Company", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CompanyShortName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Domain")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("LicenseExpireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("LicenseIssueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NumberOfLicenses")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -391,17 +409,74 @@ namespace YerraPro.Migrations
                     b.Property<string>("AgentId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("CompanyId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Label")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Target")
                         .HasColumnType("int");
 
+                    b.Property<string>("Url")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AgentId");
 
+                    b.HasIndex("CompanyId");
+
                     b.ToTable("ProcessesInfos");
+                });
+
+            modelBuilder.Entity("YerraPro.Models.SystemInfo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("AgentId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("BIOSVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HostName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OSName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OSVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Processor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RegisteredOwner")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SystemType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TimeZone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentId")
+                        .IsUnique()
+                        .HasFilter("[AgentId] IS NOT NULL");
+
+                    b.ToTable("SystemInfos");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -455,20 +530,36 @@ namespace YerraPro.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("YerraPro.Models.ApplicationUser", b =>
+            modelBuilder.Entity("YerraPro.Models.Agent", b =>
                 {
                     b.HasOne("YerraPro.Models.Company", null)
+                        .WithMany("Agents")
+                        .HasForeignKey("CompanyId");
+                });
+
+            modelBuilder.Entity("YerraPro.Models.ApplicationUser", b =>
+                {
+                    b.HasOne("YerraPro.Models.Company", "Company")
                         .WithMany("Admins")
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CompanyId");
                 });
 
             modelBuilder.Entity("YerraPro.Models.ProcessInfo", b =>
                 {
                     b.HasOne("YerraPro.Models.Agent", "Agent")
-                        .WithMany("ProcesseInfos")
+                        .WithMany("ProcessInfos")
                         .HasForeignKey("AgentId");
+
+                    b.HasOne("YerraPro.Models.Company", "Company")
+                        .WithMany()
+                        .HasForeignKey("CompanyId");
+                });
+
+            modelBuilder.Entity("YerraPro.Models.SystemInfo", b =>
+                {
+                    b.HasOne("YerraPro.Models.Agent", "Agent")
+                        .WithOne("SystemInfo")
+                        .HasForeignKey("YerraPro.Models.SystemInfo", "AgentId");
                 });
 #pragma warning restore 612, 618
         }

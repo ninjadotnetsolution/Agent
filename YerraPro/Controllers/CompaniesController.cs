@@ -30,7 +30,7 @@ namespace YerraPro.Controllers
 
         // GET api/<CompaniesController>/5
         [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        public IActionResult Get(string id)
         {
             return Ok(_service.GetCompanyById(id));
         }
@@ -50,7 +50,7 @@ namespace YerraPro.Controllers
 
         // DELETE api/<CompaniesController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public void Delete(string id)
         {
             _service.DeleteCompany(id);
         }

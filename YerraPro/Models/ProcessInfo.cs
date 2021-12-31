@@ -9,11 +9,14 @@ namespace YerraPro.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Label { get; set; }
+        public string Url { get; set; }
         public int Target { get; set; }
         public bool Action { get; set; }
-        [System.Text.Json.Serialization.JsonIgnore]
         public Agent Agent { get; set; }
         public string AgentId { get; set; }
+        public Company Company { get; set; }
+        public string CompanyId { get; set; }
 
         public ProcessInfo(string name)
         {

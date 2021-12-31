@@ -35,7 +35,7 @@ export function signupAction(userName, email, password, history) {
 
 export function logout(history) {
     localStorage.removeItem('userDetails');
-    history.push('/page-login');
+    history.replace('/page-login');
     return {
         type: LOGOUT_ACTION,
     };
@@ -52,7 +52,7 @@ export function loginAction(email, password, history) {
                     history,
                 );
                 dispatch(loginConfirmedAction(response.data));
-				history.push('/dashboard');
+				history.push('/');
 				//window.location.reload();
                 
 				//history.pushState('/index');

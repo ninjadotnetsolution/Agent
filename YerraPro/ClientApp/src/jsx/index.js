@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 /// React router dom
-import {Switch, Route } from 'react-router-dom'
+import {Switch, Route, Redirect } from 'react-router-dom'
 /// Css
 import './index.css'
 import './chart.css'
@@ -11,7 +11,7 @@ import Nav from './layouts/nav'
 import Footer from './layouts/Footer'
 
 /// Dashboard
-import Home from "./components/Dashboard/Home";
+import Home from "./pages/Home";
 
 /// Pages
 import Registration from './pages/Registration'
@@ -25,10 +25,11 @@ import Error503 from './pages/Error503'
 
 //Scroll To Top
 import ScrollToTop from './layouts/ScrollToTop';
-import Agents from './components/table/Agents'
-import Processes from './components/table/Processes'
-import Companies from './components/table/Companies'
-import Users from './components/table/Users'
+import Agents from './pages/Agents'
+import Processes from './pages/Processes'
+import Companies from './pages/Companies'
+import Users from './pages/Users'
+import CompanyProfile from './pages/CompanyProfile'
 
 
 const Markup = () => {
@@ -43,9 +44,9 @@ const Markup = () => {
     { url: '', component: Home },
     { url: 'agents', component: Agents },
     { url: 'companies', component: Companies },
-    { url: 'users', component: Users },
+    { url: 'company-profile/:companyId', component: CompanyProfile },
+    { url: 'admins', component: Users },
     { url: 'processes/:agentId', component: Processes },
-    { url: 'dashboard', component: Home },
 
     { url: 'page-register', component: Registration },
     { url: 'page-lock-screen', component: LockScreen },
@@ -89,6 +90,7 @@ const Markup = () => {
                       component={data.component}
                     />
                   ))}
+                    <Redirect from="*" to="/"/>
                 </Switch>
               </div>
             </div>

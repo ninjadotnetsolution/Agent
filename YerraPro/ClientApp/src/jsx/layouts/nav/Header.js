@@ -1,10 +1,9 @@
 import React from "react";
 import LogoutPage from './Logout';
-
+import { useSelector } from "react-redux"
 
 const Header = () => {
-  var path = window.location.pathname.split("/");
-  var name = path[1];
+	const user = useSelector(state => state.auth.auth)
   
   return (
     <div className="header">
@@ -16,9 +15,7 @@ const Header = () => {
 							className="dashboard_bar"
 							style={{ textTransform: "capitalize" }}
 						  >
-							  {name.length === 0
-							  ? "Dashboard"
-								  : name}
+							  {user.email}
 						</div>
 					</div> 	
 					<ul className="navbar-nav header-right">

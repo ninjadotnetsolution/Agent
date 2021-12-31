@@ -22,6 +22,7 @@ namespace YerraPro.Data
         public virtual DbSet<ProcessInfo> ProcessesInfos { get; set; }
         public virtual DbSet<Agent> Agents { get; set; }
         public virtual DbSet<Company> Companies { get; set; }
+        public virtual DbSet<SystemInfo> SystemInfos { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

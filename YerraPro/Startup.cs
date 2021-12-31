@@ -1,19 +1,24 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using YerraPro.Controllers;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using YerraPro.Data;
 using YerraPro.Models;
 using YerraPro.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication;
 
 namespace YerraPro
 {
@@ -51,6 +56,13 @@ namespace YerraPro
             services.AddScoped<IYerraProService, YerraProService>();
             services.AddScoped<ICompanyService, CompanyService>();
             services.AddSingleton<IYerraProSingleton, YerraProSingleton>();
+            services.AddMvc(option =>
+            {
+                option.EnableEndpointRouting = false;
+                var policy = new AuthorizationPolicyBuilder()
+                                .RequireAuthenticatedUser().RequireAuthenticatedUser().Build();
+                option.Filters.Add(new AuthorizeFilter(policy));
+            }).SetCompatibilityVersion(CompatibilityVersion.Latest);
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -105,9 +117,61 @@ namespace YerraPro
             });
         }
 
-        public void configHub ()
-        {
+    }
 
+    public static class AuthorizationExtension
+    {
+        // Extension method for Adding 
+        // JwtBearer Middleware to the Pipeline
+        public static IServiceCollection AddBearerAuthentication(
+            this IServiceCollection services)
+        {
+            var validationParams = new TokenValidationParameters()
+            {
+                ValidateAudience = true,
+                ValidateIssuer = true,
+                ValidateLifetime = true,
+                IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(TokenConstants.key)),
+                ValidIssuer = TokenConstants.Issuer,
+                ValidAudience = TokenConstants.Audience
+            };
+
+            var events = new JwtBearerEvents()
+            {
+                // invoked when the token validation fails
+                OnAuthenticationFailed = (context) =>
+                {
+                    return Task.CompletedTask;
+                },
+
+                // invoked when a request is received
+                OnMessageReceived = (context) =>
+                {
+                    return Task.CompletedTask;
+                },
+
+                // invoked when token is validated
+                OnTokenValidated = (context) =>
+                {
+                    return Task.CompletedTask;
+                }
+            };
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme
+                    = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme
+                    = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = validationParams;
+                options.Events = events;
+            });
+
+            return services;
         }
     }
 }

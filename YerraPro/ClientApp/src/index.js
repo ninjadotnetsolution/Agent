@@ -11,7 +11,6 @@ import  ThemeContext  from "./context/ThemeContext";
 
 
 ReactDOM.render(
-    <React.StrictMode>
         <Provider store = {store}>
             <SimpleReactLightbox>
                 <BrowserRouter>
@@ -21,8 +20,7 @@ ReactDOM.render(
                  { /*   <App /> */  }
                 </BrowserRouter>    
             </SimpleReactLightbox>
-        </Provider>	
-    </React.StrictMode>,
+        </Provider>,
     document.getElementById("root")
 );
 reportWebVitals();

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using YerraPro.Data;
@@ -13,10 +14,10 @@ namespace YerraPro.Services
     {
         ApplicationDbContext _context { get; set; }
 
-        List<CompanyVM> GetAllCompanies();
+        List<Company> GetAllCompanies();
         CompanyVM CreateCompany(CompanyVM company);
-        CompanyVM GetCompanyById(long id);
-        void DeleteCompany(long id);
+        CompanyVM GetCompanyById(string id);
+        void DeleteCompany(string id);
     }
 
     public class CompanyService : ICompanyService 
@@ -34,36 +35,44 @@ namespace YerraPro.Services
             _context = context;
         }
 
-        public List<CompanyVM> GetAllCompanies()
+        public List<Company> GetAllCompanies()
         {
-            return context.Companies.Select(c => new CompanyVM(c, context.Users.Where(u => u.CompanyId == c.Id).Select(u => u.Email).ToList())).ToList();
+            return context.Companies.ToList();
         }
 
         public CompanyVM CreateCompany(CompanyVM company)
         {
-            var admins = context.Users.Where(u => company.Admins.Any(aId => aId == u.Id)).Select(u => u.Email).ToList();
             var newCompany = new Company()
             {
+                Id = company.Id,
                 CompanyName = company.CompanyName,
-                Domain = company.Domain,
-                Description = company.Description,
+                CompanyShortName = company.CompanyShortName,
+                Address = company.Address,
+                NumberOfLicenses = company.NumberOfLicenses,
+                Type = company.Type,
+                LicenseIssueDate = company.LicenseIssueDate,
+                LicenseExpireDate = company.LicenseExpireDate
             };
             context.Companies.Add(newCompany);
             context.SaveChanges();
             
-            return new CompanyVM(newCompany, admins);
+            return new CompanyVM(newCompany);
         }
 
-        public CompanyVM GetCompanyById(long Id)
+        public CompanyVM GetCompanyById(string Id)
         {
-            return context.Companies.Where(u => u.Id == Id).Select(c => new CompanyVM(c, context.Users.Where(u => u.CompanyId == c.Id).Select(u => u.Email).ToList())).FirstOrDefault();
+            var company = context.Companies.Include(c => c.Admins).Include(c => c.Agents).Where(c => c.Id == Id).FirstOrDefault();
+            if (company == null) return null;
+
+            return new CompanyVM(company, company.Admins.ToList(), company.Agents.ToList());
         }
 
-        public void DeleteCompany(long Id)
+        public void DeleteCompany(string Id)
         {
             var selCompany = context.Companies.FirstOrDefault(c => c.Id == Id);
 
             context.Companies.Remove(selCompany);
+            context.SaveChanges();
         }
 
     }

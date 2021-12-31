@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using YerraPro.Data;
 using YerraPro.Models;
 using YerraPro.Services;
+using YerraPro.ViewModels;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -31,23 +33,30 @@ namespace YerraPro.Controllers
         }
 
         // GET: api/<AgentController>
-        [HttpGet]
-        public List<Agent> Get()
+        [HttpGet("byCompanyId/{id}")]
+        public IActionResult GetByCompanyId(string Id)
         {
-            return _yerraProService.context.Agents.ToList();
+            return Ok(_yerraProService.context.Agents.Where(a => a.CompanyId == Id).Select(a => new AgentVM(a)).ToList());
+        }
+
+        [HttpGet("check")]
+        public IActionResult Check()
+        {
+            return Ok();
         }
 
         // GET api/<AgentController>/5
         [HttpGet("{id}")]
         [Obsolete]
-        public Agent Get(string id)
+        public IActionResult Get(string id)
         {
             
-            return _yerraProService.context.Agents
-                .Include(a => a.ProcesseInfos)
-                .FirstOrDefault(a => a.Id == id);
+            return Ok(_yerraProService.context.Agents
+                .Include(a => a.ProcessInfos)
+                .FirstOrDefault(a => a.Id == id));
         }
 
+        [AllowAnonymous]
         [HttpGet("checkstate/{id}")]
         [Obsolete]
         public int CheckState(string id)
@@ -56,6 +65,7 @@ namespace YerraPro.Controllers
                 .FirstOrDefault(a => a.Id == id).Status;
         }
 
+        [AllowAnonymous]
         [HttpGet("turnoff/{id}")]
         [Obsolete]
         public void turnoff(string id)
@@ -76,12 +86,13 @@ namespace YerraPro.Controllers
         }
 
         // POST api/<AgentController>
+        [AllowAnonymous]
         [HttpPost]
         [Obsolete]
         public Agent Post(Agent agent)
         {
 
-            var selCompany = _yerraProService.context.Companies.FirstOrDefault(c => c.CompanyName == agent.CompanyName);
+            var selCompany = _yerraProService.context.Companies.FirstOrDefault(c => c.Id == agent.CompanyId);
             if (selCompany == null) return null;
 
             var selAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == agent.Id);
@@ -89,15 +100,11 @@ namespace YerraPro.Controllers
             {
                 selAgent.IpAddress = agent.IpAddress;
                 selAgent.MachineID = agent.MachineID;
-                selAgent.WinVersion = agent.WinVersion;
-                selAgent.CompanyName = agent.CompanyName;
-                selAgent.SystemName = agent.SystemName;
                 _yerraProService.context.SaveChanges();
 
                 return selAgent;
             }else
             {
-                agent.CompanyId = selCompany.Id;
                 _yerraProService.context.Agents.Add(agent);
             }
             _yerraProService.context.SaveChanges();
@@ -118,6 +125,7 @@ namespace YerraPro.Controllers
             return agent;
         }
         
+        [AllowAnonymous]
         [HttpPut]
         [Obsolete]
         public Agent Put(Agent agent)
@@ -127,26 +135,25 @@ namespace YerraPro.Controllers
             else if (selectedAgent.IpAddress != null && selectedAgent.IpAddress != agent.IpAddress) return null;
             selectedAgent.IpAddress = agent.IpAddress;
             selectedAgent.MachineID = agent.MachineID;
-            selectedAgent.WinVersion = agent.WinVersion;
             selectedAgent.Status = agent.Status;
-            selectedAgent.SystemName = agent.SystemName;
             _yerraProService.context.SaveChanges();
             return agent;
         }
         
+        [AllowAnonymous]
         [HttpPost("processes/{id}")]
         [Obsolete]
         public List<ActionResult> setProcesses (string id, List<ProcessInfo> processes)
         {
 
-            var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcesseInfos).FirstOrDefault(a => a.Id == id);
+            var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcessInfos).FirstOrDefault(a => a.Id == id);
             if (selectedAgent.Status != 1) return null;
             List<ActionResult> result = new List<ActionResult>();
             List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
             if(processes.Count > 0)
             {
                 if (selectedAgent == null) return new List<ActionResult>();
-                if (selectedAgent.ProcesseInfos == null) selectedAgent.ProcesseInfos = new List<ProcessInfo>();
+                if (selectedAgent.ProcessInfos == null) selectedAgent.ProcessInfos = new List<ProcessInfo>();
 
                 processes.ForEach(p =>
                 {
@@ -159,7 +166,7 @@ namespace YerraPro.Controllers
                             Action = false,
                         };
 
-                        selectedAgent.ProcesseInfos.Add(temp);
+                        selectedAgent.ProcessInfos.Add(temp);
                         selectedAgent.UpdatedAt = DateTime.Now;
                     }
                 });
@@ -186,10 +193,10 @@ namespace YerraPro.Controllers
         {
             var selectedAgent = _yerraProService.context.Agents.FirstOrDefault(a => a.Id == processes[0].Agent.Id);
             if (selectedAgent == null) return false;
-            selectedAgent.ProcesseInfos = new List<ProcessInfo>();
+            selectedAgent.ProcessInfos = new List<ProcessInfo>();
             processes.ForEach(p =>
             {
-                selectedAgent.ProcesseInfos.Add(new ProcessInfo(p.Name));
+                selectedAgent.ProcessInfos.Add(new ProcessInfo(p.Name));
 
             });
             _yerraProService.context.SaveChanges();
@@ -201,7 +208,7 @@ namespace YerraPro.Controllers
         [Obsolete]
         public Agent Delete(string id)
         {
-            var selectedAgent = _yerraProService.context.Agents.Include(p => p.ProcesseInfos).FirstOrDefault(a => a.Id == id);
+            var selectedAgent = _yerraProService.context.Agents.Include(p => p.ProcessInfos).FirstOrDefault(a => a.Id == id);
             _yerraProService.context.Agents.Remove(selectedAgent);
             _yerraProService.context.SaveChanges();
             return selectedAgent;

@@ -13,10 +13,15 @@ namespace YerraPro.Services
     {
         ApplicationDbContext context { get; set; }
         UserVM Authenticate(string userName, string password);
-        List<UserVM> GetAll();
+        List<Admin> GetAll();
+        List<Admin> GetByCompanyId(string compnayId);
+        List<Admin> GetByRoleName(string roleName);
+
         UserVM GetById(string id);
-        UserVM Create(Register user);
+        UserVM Register(Register user);
+        UserVM Create(Admin user);
         void Update(ApplicationUser user, string password = null);
+        UserVM Update(Admin admin);
         void Delete(string id);
     }
 
@@ -134,27 +139,40 @@ namespace YerraPro.Services
             return new UserVM(user, roleNames);
         }
 
-        public List<UserVM> GetAll()
+        public List<Admin> GetAll()
         {
             return (from user in _context.Users.AsQueryable()
-                         select new UserVM(
-                             user,
-                             _context.UserRoles.Join(
-                                 _context.Roles,
-                                 ur => ur.RoleId,
-                                 r => r.Id, (ur, r) => new { UserId = ur.UserId, RoleName = r.Name })
-                             .Where(r => r.UserId == user.Id)
-                             .Select(r => r.RoleName).ToList())).ToList();
+                         select new Admin(user)).ToList();
+        }
+
+        public List<Admin> GetByCompanyId(string companyId)
+        {
+            return (from user in _context.Users.AsQueryable()
+                    where user.CompanyId == companyId
+                    select new Admin(user)).ToList();
+        }
+
+        public List<Admin> GetByRoleName(string roleName)
+        {
+            var selRole = _context.Roles.FirstOrDefault(r => r.Name == roleName);
+            if (selRole == null) return null;
+            return _context.UserRoles
+                .Where(ur => ur.RoleId == selRole.Id)
+                .Join(_context.Users, ur => ur.UserId, u => u.Id, (ur, u) => u)
+                .Select(u => new Admin(u))
+                .ToList();
+
         }
 
         public UserVM GetById(string id)
         {
             var selUser = _context.Users.FirstOrDefault(u => u.Id == id);
+            if (selUser == null) return null;
             var roleNames = _context.UserRoles.Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name).ToList();
             return new UserVM(selUser, roleNames);
         }
 
-        public UserVM Create(Register user)
+        public UserVM Register(Register user)
         {
             // validation
             
@@ -193,6 +211,70 @@ namespace YerraPro.Services
             return null;
         }
 
+        public UserVM Create(Admin user)
+        {
+            // validation
+            if (_context.Users.Any(x => x.Email == user.Email))
+                throw new Exception("EMAIL_EXISTS");
+
+            IdentityRole selRole;
+            if (user.CompanyId == null)
+            {
+                selRole = _context.Roles.FirstOrDefault(r => r.Name == "SuperAdmin");
+            }
+            else
+            {
+                selRole = _context.Roles.FirstOrDefault(r => r.Name == "CompanyAdmin");
+
+            }
+            if (selRole != null)
+            {
+
+                string passwordHash;
+                byte[] passwordSalt;
+                CreatePasswordHash(user.Password, out passwordHash, out passwordSalt);
+
+                ApplicationUser newUser = new ApplicationUser();
+                newUser.PasswordHash = passwordHash;
+                newUser.CompanyId = user.CompanyId;
+                newUser.PasswordSalt = passwordSalt;
+                newUser.FirstName = user.FirstName;
+                newUser.LastName = user.LastName;
+                newUser.Email = user.Email;
+                newUser.Address = user.Address;
+                newUser.PhoneNumber = user.PhoneNumber;
+                newUser.UserName = $"{user.FirstName} {user.LastName}";
+                newUser.Status = false;
+                _context.Users.Add(newUser);
+                _context.SaveChanges();
+
+                _context.UserRoles.Add(new IdentityUserRole<string>()
+                {
+                    UserId = newUser.Id,
+                    RoleId = selRole.Id
+                });
+                _context.SaveChanges();
+
+                return new UserVM(newUser, new List<string>() { selRole.Name });
+            }
+            return null;
+        }
+
+        public UserVM Update(Admin admin)
+        {
+            var selUser = _context.Users.FirstOrDefault(u => u.Id == admin.Id);
+            if (selUser == null) return null;
+            selUser.FirstName = admin.FirstName;
+            selUser.LastName = admin.LastName;
+            selUser.Email = admin.Email;
+            selUser.Address = admin.Address;
+            selUser.PhoneNumber = admin.PhoneNumber;
+            selUser.Status = admin.Status;
+            _context.Users.Update(selUser);
+            _context.SaveChanges();
+            List<string> roles = _context.UserRoles.Where(ur => ur.UserId == selUser.Id).Join(_context.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name).ToList();
+            return new UserVM(selUser, roles);
+        }
         public void Update(ApplicationUser userParam, string password = null)
         {
             var user = _context.Users.Find(userParam.Id);

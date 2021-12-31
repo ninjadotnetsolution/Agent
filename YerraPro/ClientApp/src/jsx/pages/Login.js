@@ -5,11 +5,7 @@ import {
     loadingToggleAction,
     loginAction,
 } from '../../store/actions/AuthActions';
-// image
-//import logo from "../../images/logo-text.png";
-//import loginbg from "../../images/login-bg-1.jpg";
 import loginbg from "../../images/login-bg-4.jpg";
-//import loginbg from "../../images/login-bg-1.jpg";
 
 function Login (props) {
     const [email, setEmail] = useState('superadmin@gmail.com');
@@ -141,9 +137,9 @@ function Login (props) {
                                 <div className="new-account mt-2">
                                   <p className="">
                                     Don't have an account?{" "}
-                                    <Link className="text-primary" to="./page-register">
-                                      Sign up
-                                    </Link>
+                                    {/*<Link className="text-primary" to="./page-register">*/}
+                                    {/*  Sign up*/}
+                                    {/*</Link>*/}
                                   </p>
                                 </div>
                               </div>
