@@ -13,6 +13,7 @@ namespace YerraPro.Models
         public string Url { get; set; }
         public int Target { get; set; }
         public bool Action { get; set; }
+        public bool State { get; set; }
         public Agent Agent { get; set; }
         public string AgentId { get; set; }
         public Company Company { get; set; }

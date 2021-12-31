@@ -109,18 +109,7 @@ namespace YerraPro.Controllers
             }
             _yerraProService.context.SaveChanges();
 
-            //IPAddress[] ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            //string originString = guid.ToString() + "*" + ipHostInfo[1].ToString() + ":6430"+"*"+selCompany.Domain;
-            //string encString = StringCipher.EncryptStringAES(originString, "E546C8DF278CD5931069B522E695D222");
-            //string path = "./Resources/liecense.lie";
-            //if (!System.IO.File.Exists(path))
-            //{
-            //    using (StreamWriter sw = System.IO.File.CreateText(path))
-            //    {
-            //        sw.WriteLine(encString);
-            //    }
-            //}
-            //else System.IO.File.WriteAllText(path, encString);
+            
 
             return agent;
         }
@@ -149,7 +138,7 @@ namespace YerraPro.Controllers
             var selectedAgent = _yerraProService.context.Agents.Include(a => a.ProcessInfos).FirstOrDefault(a => a.Id == id);
             if (selectedAgent.Status != 1) return null;
             List<ActionResult> result = new List<ActionResult>();
-            List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id || p.Target == 2).ToList();
+            List<ProcessInfo> storedProcesses = _yerraProService.context.ProcessesInfos.Where(p => p.AgentId == id).ToList();
             if(processes.Count > 0)
             {
                 if (selectedAgent == null) return new List<ActionResult>();
@@ -157,28 +146,48 @@ namespace YerraPro.Controllers
 
                 processes.ForEach(p =>
                 {
-                    if (storedProcesses.Count == 0 || !storedProcesses.Any(sp => (sp.Name == p.Name)))
+                    var selProcess = _yerraProService.context.ProcessesInfos.FirstOrDefault(p => p.AgentId == id);
+                    if(selProcess == null)
                     {
+                        var selGlobalProcess = _yerraProService.context.ProcessesInfos.FirstOrDefault(p => p.Target == 2 || p.Target == 3);
+                        bool action = false;
+                        if(selGlobalProcess != null)
+                        {
+                            action = selGlobalProcess.Action;
+                        }
                         ProcessInfo temp = new ProcessInfo()
                         {
                             Name = p.Name,
                             Target = 0,
-                            Action = false,
+                            Action = action,
+                            State = true
                         };
 
                         selectedAgent.ProcessInfos.Add(temp);
                         selectedAgent.UpdatedAt = DateTime.Now;
-                    }
-                });
-
-                storedProcesses.ForEach(p =>
-                {
-                    if (!processes.Any(sp => (sp.Name == p.Name) && p.Target == 0))
+                    }else
                     {
-                        _yerraProService.context.ProcessesInfos.Remove(p);
+                        var selGlobalProcess = _yerraProService.context.ProcessesInfos.FirstOrDefault(p => p.Target == 2 || p.Target == 3);
+                        bool action = false;
+                        if (selGlobalProcess != null)
+                        {
+                            action = selGlobalProcess.Action;
+                        }
+                        selProcess.Action = action;
+                        selProcess.State = true;
+
                     }
                 });
 
+                foreach(ProcessInfo p in storedProcesses)
+                {
+                    if (!processes.Any(sp => (sp.Name == p.Name)))
+                    {
+                        p.State = false;
+                    }
+                }
+
+                selectedAgent.UpdatedAt = DateTime.Now;
                 _yerraProService.context.SaveChanges();
             }
             
